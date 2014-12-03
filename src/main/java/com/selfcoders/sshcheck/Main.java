@@ -12,8 +12,6 @@ public class Main {
     private SSH ssh;
 
     public Main(CommandLineArguments commandLineArguments) {
-        this.ssh = new SSH(commandLineArguments.privateKeyFiles, commandLineArguments.privateKeyPassphrase);
-
         JsonObject rootObject;
         try {
             JsonParser parser = new JsonParser();
@@ -21,9 +19,11 @@ public class Main {
             rootObject = parser.parse(fileReader).getAsJsonObject();
             fileReader.close();
         } catch (IOException e) {
-            ErrorLogger.log("Unable to parse server list file!");
+            ErrorLogger.log("Unable to read server list file: " + commandLineArguments.serverListFile);
             return;
         }
+
+        this.ssh = new SSH(commandLineArguments.privateKeyFiles, commandLineArguments.privateKeyPassphrase);
 
         JsonObject globalObject = null;
         if (rootObject.has("global") && rootObject.get("global").isJsonObject()) {
