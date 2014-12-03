@@ -18,6 +18,8 @@ java -jar sshcheck.jar --serverlist /path/to/servers.json
 
 This will Start to check all servers configured in the given server list file (/path/to/servers.json).
 
+If no server list file is specified, the servers.json from the path of the jar file will be used.
+
 ## Server file structure
 
 The server list is a JSON file which must have the following structure:
