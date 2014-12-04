@@ -2,6 +2,8 @@
 
 Check whether you are reaching a list of SSH servers.
 
+[![Build Status](https://travis-ci.org/Programie/SSHCheck.svg)](https://travis-ci.org/Programie/SSHCheck)
+
 ## Usage
 
 Call the jar file from the command line.
