@@ -19,7 +19,7 @@ public class Main {
             rootObject = parser.parse(fileReader).getAsJsonObject();
             fileReader.close();
         } catch (IOException e) {
-            ErrorLogger.log("Unable to read server list file: " + commandLineArguments.serverListFile);
+            System.out.println("Unable to read server list file: " + commandLineArguments.serverListFile);
             return;
         }
 

@@ -69,7 +69,7 @@ public class SSH extends JSch {
                 try {
                     cygwinRootDir = WindowsRegistry.readString(WindowsRegistry.HKEY_LOCAL_MACHINE, "SOFTWARE\\Cygwin\\setup", "rootdir");
                 } catch (IllegalAccessException | InvocationTargetException e) {
-                    ErrorLogger.log(e.getMessage());
+                    System.out.println(e.getMessage());
                     System.exit(1);
                 }
 
@@ -93,7 +93,7 @@ public class SSH extends JSch {
                 }
             }
         } catch (JSchException | IOException e) {
-            ErrorLogger.log(e.getMessage());
+            System.out.println(e.getMessage());
             System.exit(1);
         }
     }
