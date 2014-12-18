@@ -4,6 +4,16 @@ Check whether you are reaching a list of SSH servers.
 
 [![Build Status](https://travis-ci.org/Programie/SSHCheck.svg)](https://travis-ci.org/Programie/SSHCheck)
 
+## Building
+
+You have to use Maven to build the application.
+
+Simply execute the following command in the root folder of your checkout:
+
+```
+mvn clean package
+```
+
 ## Usage
 
 Call the jar file from the command line.
