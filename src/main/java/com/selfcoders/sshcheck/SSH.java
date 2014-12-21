@@ -13,17 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SSH extends JSch {
-    private String checkResult;
     private List<String> privateKeyFiles;
     private String privateKeyPassphrase;
-    private SSHLogger sshLogger;
 
     public SSH(List<String> privateKeyFiles, String privateKeyPassphrase) {
         this.privateKeyFiles = privateKeyFiles == null ? new ArrayList<String>() : privateKeyFiles;
         this.privateKeyPassphrase = privateKeyPassphrase;
-        this.sshLogger = new SSHLogger();
-
-        JSch.setLogger(this.sshLogger);
 
         this.addPrivateKeys();
     }
@@ -115,14 +110,8 @@ public class SSH extends JSch {
         }
     }
 
-    public String getCheckResult() {
-        return this.checkResult;
-    }
-
     public boolean testConnection(String username, String hostname) {
         System.out.print("Testing '" + username + "@" + hostname + "': ");
-
-        this.sshLogger.startSession();
 
         try {
             Session session = this.getSession(username, hostname);
@@ -134,16 +123,11 @@ public class SSH extends JSch {
             session.connect();
             session.disconnect();
 
-            this.checkResult = this.sshLogger.getData();
-
             System.out.println("OK");
 
             return true;
         } catch (JSchException e) {
-            this.checkResult = this.sshLogger.getData();
-            this.checkResult += "Error Message: " + e.getMessage() + "\n";
-
-            System.out.println("ERROR");
+            System.out.println("ERROR (" + e.getMessage() + ")");
 
             return false;
         }

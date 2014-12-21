@@ -30,7 +30,6 @@ public class Main {
             globalObject = rootObject.getAsJsonObject("global");
         }
 
-        JsonObject checkResults = new JsonObject();
         int ok = 0;
         int errors = 0;
 
@@ -40,11 +39,7 @@ public class Main {
 
             JsonObject serverObject = serverElement.getAsJsonObject();
 
-            JsonObject checkResult = this.checkServer(serverObject, globalObject);
-
-            checkResults.add(Integer.toString(index), checkResult);
-
-            if (checkResult.get("ok").getAsBoolean()) {
+            if (this.checkServer(serverObject, globalObject)) {
                 ok++;
             } else {
                 errors++;
@@ -58,7 +53,7 @@ public class Main {
         System.out.println(resultMessage);
     }
 
-    private JsonObject checkServer(JsonObject serverObject, JsonObject globalObject) {
+    private boolean checkServer(JsonObject serverObject, JsonObject globalObject) {
         JsonElement usernameElement = serverObject.get("username");
         String username = null;
 
@@ -79,11 +74,7 @@ public class Main {
             }
         }
 
-        JsonObject checkResult = new JsonObject();
-        checkResult.addProperty("ok", this.ssh.testConnection(username, serverObject.get("hostname").getAsString()));
-        checkResult.addProperty("response", this.ssh.getCheckResult().trim());
-
-        return checkResult;
+        return this.ssh.testConnection(username, serverObject.get("hostname").getAsString());
     }
 
     public static void main(String[] args) {
