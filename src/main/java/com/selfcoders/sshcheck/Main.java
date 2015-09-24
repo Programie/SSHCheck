@@ -16,15 +16,13 @@ public class Main {
     private String defaultUsername;
 
     public Main(CommandLineArguments commandLineArguments) {
-        defaultUsername = System.getProperty("user.name");
+        if (commandLineArguments.username != null) {
+            defaultUsername = commandLineArguments.username;
+        }
 
         if (!tryLoadServerlistFile(commandLineArguments.serverListFile)) {
             System.out.println("Unable to read server list file: " + commandLineArguments.serverListFile);
             return;
-        }
-
-        if (commandLineArguments.username != null) {
-            defaultUsername = commandLineArguments.username;
         }
 
         SSH ssh = new SSH(commandLineArguments.privateKeyFiles, commandLineArguments.privateKeyPassphrase);
@@ -84,6 +82,12 @@ public class Main {
             }
         }
 
+        String globalUsername = defaultUsername;
+
+        if (globalUsername == null) {
+            globalUsername = System.getProperty("user.name");
+        }
+
         JsonArray serversArray = rootObject.getAsJsonArray("servers");
         for (int index = 0; index < serversArray.size(); index++) {
             JsonObject serverObject = serversArray.get(index).getAsJsonObject();
@@ -100,7 +104,7 @@ public class Main {
             String hostname = hostnameElement.getAsString();
 
             if (usernameElement == null) {
-                username = defaultUsername;
+                username = globalUsername;
             } else {
                 username = usernameElement.getAsString();
             }
@@ -112,6 +116,12 @@ public class Main {
     }
 
     private boolean loadServerlistAsPlaintext(String filename) {
+        String globalUsername = defaultUsername;
+
+        if (globalUsername == null) {
+            globalUsername = System.getProperty("user.name");
+        }
+
         try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader(filename));
 
@@ -133,7 +143,7 @@ public class Main {
                 int atIndex = line.indexOf("@");
                 if (atIndex == -1) {
                     hostname = line;
-                    username = defaultUsername;
+                    username = globalUsername;
                 } else {
                     hostname = line.substring(atIndex + 1).trim();
                     username = line.substring(0, atIndex).trim();
