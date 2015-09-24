@@ -34,7 +34,9 @@ If no server list file is specified, the servers.json from the path of the jar f
 
 ## Server file structure
 
-The server list is a JSON file which must have the following structure:
+A server list can be in various formats. Currently only JSON and plain text files are supported.
+
+### JSON
 
 ```
 {
@@ -47,6 +49,13 @@ The server list is a JSON file which must have the following structure:
         {
             "hostname" : "server1.example.com",
             "username" : "root"
+        },
+        {
+            "hostname" : "another-server.example.com",
+            "username" : "me"
+        },
+        {
+            "hostname" : "some-server.example.com"
         }
     ]
 }
@@ -55,5 +64,20 @@ The server list is a JSON file which must have the following structure:
 The username is retrieved in the following way:
 
    * "username" property from the server map
+   * "username" command line option
    * "username" property from the global map
+   * "user.name" system property providing the system's local username
+
+### Plain text
+
+```
+root@server1.example.com
+me@another-server.example.com
+some-server.example.com
+```
+
+The username is retrieved in the following way:
+
+   * The username before the "@" sign
+   * "username" command line option
    * "user.name" system property providing the system's local username
