@@ -110,11 +110,11 @@ public class SSH extends JSch {
         }
     }
 
-    public boolean testConnection(String username, String hostname) {
-        System.out.print("Testing '" + username + "@" + hostname + "': ");
+    public boolean testConnection(Server server) {
+        System.out.print("Testing '" + server.username + "@" + server.hostname + "': ");
 
         try {
-            Session session = this.getSession(username, hostname);
+            Session session = this.getSession(server.username, server.hostname);
 
             java.util.Properties config = new java.util.Properties();
             config.put("StrictHostKeyChecking", "no");

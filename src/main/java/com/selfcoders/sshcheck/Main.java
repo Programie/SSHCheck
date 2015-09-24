@@ -5,41 +5,35 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class Main {
-    private SSH ssh;
+    private ArrayList<Server> servers = new ArrayList<>();
+    private String defaultUsername;
 
     public Main(CommandLineArguments commandLineArguments) {
-        JsonObject rootObject;
-        try {
-            JsonParser parser = new JsonParser();
-            FileReader fileReader = new FileReader(commandLineArguments.serverListFile);
-            rootObject = parser.parse(fileReader).getAsJsonObject();
-            fileReader.close();
-        } catch (IOException e) {
+        defaultUsername = System.getProperty("user.name");
+
+        if (!tryLoadServerlistFile(commandLineArguments.serverListFile)) {
             System.out.println("Unable to read server list file: " + commandLineArguments.serverListFile);
             return;
         }
 
-        this.ssh = new SSH(commandLineArguments.privateKeyFiles, commandLineArguments.privateKeyPassphrase);
-
-        JsonObject globalObject = null;
-        if (rootObject.has("global") && rootObject.get("global").isJsonObject()) {
-            globalObject = rootObject.getAsJsonObject("global");
+        if (commandLineArguments.username != null) {
+            defaultUsername = commandLineArguments.username;
         }
+
+        SSH ssh = new SSH(commandLineArguments.privateKeyFiles, commandLineArguments.privateKeyPassphrase);
 
         int ok = 0;
         int errors = 0;
 
-        JsonArray servers = rootObject.getAsJsonArray("servers");
-        for (int index = 0; index < servers.size(); index++) {
-            JsonElement serverElement = servers.get(index);
-
-            JsonObject serverObject = serverElement.getAsJsonObject();
-
-            if (this.checkServer(serverObject, globalObject)) {
+        for (Server server : servers) {
+            if (ssh.testConnection(server)) {
                 ok++;
             } else {
                 errors++;
@@ -53,28 +47,110 @@ public class Main {
         System.out.println(resultMessage);
     }
 
-    private boolean checkServer(JsonObject serverObject, JsonObject globalObject) {
-        JsonElement usernameElement = serverObject.get("username");
-        String username = null;
-
-        if (usernameElement != null && !usernameElement.isJsonNull()) {
-            username = usernameElement.getAsString();
+    private boolean tryLoadServerlistFile(String filename) {
+        if (loadServerlistAsJson(filename)) {
+            return true;
         }
 
-        if (username == null || username.isEmpty()) {
-            if (globalObject == null) {
-                username = System.getProperty("user.name");
-            } else {
+        if (loadServerlistAsPlaintext(filename)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean loadServerlistAsJson(String filename) {
+        JsonObject rootObject;
+
+        try {
+            JsonParser parser = new JsonParser();
+            FileReader fileReader = new FileReader(filename);
+            rootObject = parser.parse(fileReader).getAsJsonObject();
+            fileReader.close();
+        } catch (IOException e) {
+            return false;
+        } catch (JsonSyntaxException e) {
+            return false;
+        }
+
+        if (rootObject.has("global") && rootObject.get("global").isJsonObject()) {
+            JsonObject globalObject = rootObject.getAsJsonObject("global");
+
+            if (globalObject != null) {
                 JsonElement globalUsernameElement = globalObject.get("username");
-                if (globalUsernameElement == null || globalUsernameElement.isJsonNull()) {
-                    username = System.getProperty("user.name");
-                } else {
-                    username = globalObject.get("username").getAsString();
+                if (globalUsernameElement != null) {
+                    defaultUsername = globalUsernameElement.getAsString();
                 }
             }
         }
 
-        return this.ssh.testConnection(username, serverObject.get("hostname").getAsString());
+        JsonArray serversArray = rootObject.getAsJsonArray("servers");
+        for (int index = 0; index < serversArray.size(); index++) {
+            JsonObject serverObject = serversArray.get(index).getAsJsonObject();
+
+            JsonElement hostnameElement = serverObject.get("hostname");
+            JsonElement usernameElement = serverObject.get("username");
+
+            if (hostnameElement == null) {
+                System.out.println("Missing hostname property!");
+                continue;
+            }
+
+            String username;
+            String hostname = hostnameElement.getAsString();
+
+            if (usernameElement == null) {
+                username = defaultUsername;
+            } else {
+                username = usernameElement.getAsString();
+            }
+
+            servers.add(new Server(hostname, username));
+        }
+
+        return true;
+    }
+
+    private boolean loadServerlistAsPlaintext(String filename) {
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(filename));
+
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                line = line.trim();
+
+                if (line.isEmpty()) {
+                    continue;
+                }
+
+                if (line.startsWith("#") || line.startsWith(";") || line.startsWith("//")) {
+                    continue;
+                }
+
+                String hostname;
+                String username;
+
+                int atIndex = line.indexOf("@");
+                if (atIndex == -1) {
+                    hostname = line;
+                    username = defaultUsername;
+                } else {
+                    hostname = line.substring(atIndex + 1).trim();
+                    username = line.substring(0, atIndex).trim();
+                }
+
+                if (hostname.isEmpty() || username.isEmpty()) {
+                    continue;
+                }
+
+                servers.add(new Server(hostname, username));
+            }
+
+            return true;
+        }
+        catch (IOException e) {
+            return false;
+        }
     }
 
     public static void main(String[] args) {

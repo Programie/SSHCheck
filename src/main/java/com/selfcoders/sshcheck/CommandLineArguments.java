@@ -17,4 +17,7 @@ public class CommandLineArguments {
     @Parameter(names = {"-s", "--serverlist"}, description = "Specify a file containing a list of servers.")
     public String serverListFile = new File(Main.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParent() +
             "/servers.json";
+
+    @Parameter(names = {"-u", "--username"}, description = "The username to use by default.")
+    public String username;
 }
