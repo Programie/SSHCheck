@@ -20,4 +20,7 @@ public class CommandLineArguments {
 
     @Parameter(names = {"-u", "--username"}, description = "The username to use by default.")
     public String username;
+
+    @Parameter(names = {"-v", "--verbose"}, description = "Enable verbose logging")
+    public boolean verbose;
 }

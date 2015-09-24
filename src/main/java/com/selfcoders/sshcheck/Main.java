@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import com.jcraft.jsch.JSch;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -23,6 +24,10 @@ public class Main {
         if (!tryLoadServerlistFile(commandLineArguments.serverListFile)) {
             System.out.println("Unable to read server list file: " + commandLineArguments.serverListFile);
             return;
+        }
+
+        if (commandLineArguments.verbose) {
+            JSch.setLogger(new VerboseLogger());
         }
 
         SSH ssh = new SSH(commandLineArguments.privateKeyFiles, commandLineArguments.privateKeyPassphrase);
